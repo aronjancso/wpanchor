@@ -6,7 +6,7 @@ default:
 
 # Run the full setup (database import + SSL certificates)
 setup:
-    chmod +x scripts/setup.sh nginx/entrypoint.sh
+    chmod +x scripts/setup.sh scripts/recert.sh nginx/entrypoint.sh
     ./scripts/setup.sh
 
 # Start all containers
@@ -25,6 +25,10 @@ restart-nginx:
 rebuild:
     docker compose build php
     docker compose up -d
+
+# Recreate SSL certificates for all domains
+recert:
+    ./scripts/recert.sh
 
 # Follow all container logs
 logs:
