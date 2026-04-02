@@ -24,6 +24,11 @@ server {
 
     add_header Cache-Control "public, max-age=2592000, immutable";
 
+    location = / {
+        return 200;
+        add_header Content-Type text/plain;
+    }
+
     location ~* \.(mp4|mov|avi|webm|mkv)$ {
         mp4;
         mp4_buffer_size     1m;
