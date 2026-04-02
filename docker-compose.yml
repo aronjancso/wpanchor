@@ -38,6 +38,7 @@ services:
     environment:
       CERTBOT_STAGE: ${CERTBOT_STAGE}
       DOMAIN: ${DOMAIN}
+      ENABLE_STATIC: ${ENABLE_STATIC:-false}
       STATIC_DOMAIN: ${STATIC_DOMAIN}
     ports:
       - "80:80"

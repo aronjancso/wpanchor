@@ -9,9 +9,11 @@ BACKUP_FILE="${ROOT_DIR}/sql/wordpress.sql"
 set -a; source "$ENV_FILE"; set +a
 
 echo "============================================"
-echo " WordPress + Static subdomain setup"
+echo " WordPress setup"
 echo " Domain:  ${DOMAIN}"
+if [ "$ENABLE_STATIC" = "true" ]; then
 echo " Static:  ${STATIC_DOMAIN}"
+fi
 echo "============================================"
 
 # --- 1. Check SQL dump ---
@@ -91,13 +93,15 @@ docker compose -f "${ROOT_DIR}/docker-compose.yml" run --rm \
     --email "${CERTBOT_EMAIL}" \
     --agree-tos --no-eff-email
 
-echo "      ${STATIC_DOMAIN}..."
-docker compose -f "${ROOT_DIR}/docker-compose.yml" run --rm \
-    --entrypoint certbot certbot certonly \
-    --webroot --webroot-path=/var/www/certbot \
-    -d "${STATIC_DOMAIN}" \
-    --email "${CERTBOT_EMAIL}" \
-    --agree-tos --no-eff-email
+if [ "$ENABLE_STATIC" = "true" ]; then
+    echo "      ${STATIC_DOMAIN}..."
+    docker compose -f "${ROOT_DIR}/docker-compose.yml" run --rm \
+        --entrypoint certbot certbot certonly \
+        --webroot --webroot-path=/var/www/certbot \
+        -d "${STATIC_DOMAIN}" \
+        --email "${CERTBOT_EMAIL}" \
+        --agree-tos --no-eff-email
+fi
 
 # --- 5. Switch to HTTPS mode ---
 echo ""
@@ -110,5 +114,7 @@ echo "============================================"
 echo " Done!"
 echo " https://${DOMAIN}"
 echo " https://www.${DOMAIN}"
+if [ "$ENABLE_STATIC" = "true" ]; then
 echo " https://${STATIC_DOMAIN}"
+fi
 echo "============================================"

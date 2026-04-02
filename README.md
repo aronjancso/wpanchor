@@ -1,6 +1,6 @@
 # WordPress Docker Stack
 
-Dockerized WordPress stack with Nginx reverse proxy, automatic SSL certificates (Let's Encrypt), and a static asset subdomain.
+Dockerized WordPress stack with Nginx reverse proxy, automatic SSL certificates (Let's Encrypt), and an optional static asset subdomain.
 
 **Services:** MySQL 8.0, PHP-FPM 8.3, Nginx, Certbot
 
@@ -80,6 +80,7 @@ Create a `.env` file in the project root:
 ```bash
 cat > .env << 'EOF'
 CERTBOT_STAGE=pre
+ENABLE_STATIC=false
 
 DOMAIN=example.com
 STATIC_DOMAIN=static.example.com
@@ -92,7 +93,12 @@ DB_ROOT_PASSWORD=your_strong_root_password
 EOF
 ```
 
-> **Important:** Replace `example.com`, `static.example.com`, the email address, and both passwords with your own values.
+> **Important:** Replace `example.com`, the email address, and both passwords with your own values.
+
+| Variable | Description |
+|---|---|
+| `ENABLE_STATIC` | Set to `true` to enable the static asset subdomain. When `false` (default), `STATIC_DOMAIN` is ignored and no static site config or certificate is created. |
+| `STATIC_DOMAIN` | The subdomain for serving static assets (only used when `ENABLE_STATIC=true`). |
 
 ## 3. Upload WordPress Files and Database
 
@@ -107,7 +113,7 @@ Copy the full WordPress installation into the `www/` directory:
 rsync -avz /source/wordpress/ server:/opt/wordpress/www/
 ```
 
-### 3.2 Static assets (if any)
+### 3.2 Static assets (only if `ENABLE_STATIC=true`)
 
 Copy videos and images into the `static/` directory:
 
@@ -159,7 +165,7 @@ This automatically:
 Once complete, these URLs should be live:
 - `https://example.com`
 - `https://www.example.com`
-- `https://static.example.com`
+- `https://static.example.com` (only if `ENABLE_STATIC=true`)
 
 ## 6. Verify
 
