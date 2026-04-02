@@ -1,0 +1,68 @@
+services:
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    volumes:
+      - wordpress:/var/lib/mysql
+    networks:
+      - wordpress
+
+  php:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.php
+    container_name: php
+    restart: unless-stopped
+    depends_on:
+      - mysql
+    volumes:
+      - ./www:/var/www/html
+      - ./php/custom.ini:/usr/local/etc/php/conf.d/custom.ini:ro
+    networks:
+      - wordpress
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    restart: unless-stopped
+    depends_on:
+      - php
+    entrypoint: ["/bin/sh", "/etc/nginx/entrypoint.sh"]
+    environment:
+      CERTBOT_STAGE: ${CERTBOT_STAGE}
+      DOMAIN: ${DOMAIN}
+      STATIC_DOMAIN: ${STATIC_DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./www:/var/www/html:ro
+      - ./static:/var/www/static:ro
+      - ./nginx/entrypoint.sh:/etc/nginx/entrypoint.sh:ro
+      - ./nginx/templates:/etc/nginx/templates:ro
+      - ./certbot/www:/var/www/certbot:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+    networks:
+      - wordpress
+
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    volumes:
+      - ./certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do sleep 12h & wait $${!}; certbot renew; done'"
+
+volumes:
+  wordpress:
+
+networks:
+  wordpress:
+    driver: bridge
